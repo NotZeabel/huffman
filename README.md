@@ -1,6 +1,8 @@
 # huffman
 Proyecto 1 de Sistemas Operativos
 
+Link con el zip de libros: https://files.catbox.moe/0o67sy.zip
+
 ---
 
 # Compresión
