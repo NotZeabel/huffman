@@ -11,7 +11,7 @@ Link con el zip de libros: https://files.catbox.moe/0o67sy.zip
 - [ ] Con Hilos
 
 # Descompresión
-- [ ] Serial
+- [x] Serial
 - [ ] Con Procesos
 - [ ] Con Hilos
 
