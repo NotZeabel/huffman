@@ -1,6 +1,7 @@
 #include "utils/bitwriter.c"
 #include "utils/heap.c"
 #include <dirent.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 // ===== DEFINITIONS =====
@@ -67,7 +68,7 @@ void build_codes(Node *node, char *prefix, int length) {
 
 void write_header(FILE *out) {
     fwrite("HUF1", 1, 4, out);
-    fwrite(&file_count, sizeof(int), 1, out);
+    fwrite(&file_count, sizeof(uint32_t), 1, out);
 
     for (int i = 0; i < file_count; i++) {
         uint16_t len = strlen(files[i].path);
