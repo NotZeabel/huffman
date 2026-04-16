@@ -1,15 +1,12 @@
 #include "utils/bitwriter.c"
 #include "utils/heap.c"
 #include <dirent.h>
-#include <stdint.h>
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+
+// ===== DEFINITIONS =====
 
 #define SYMBOLS 256
 #define MAX_FILES 1024
-
-// ===== DEFINITIONS =====
 
 typedef struct {
     char path[512];
@@ -70,7 +67,7 @@ void build_codes(Node *node, char *prefix, int length) {
 
 void write_header(FILE *out) {
     fwrite("HUF1", 1, 4, out);
-    fwrite(&file_count, 1, 1, out);
+    fwrite(&file_count, sizeof(int), 1, out);
 
     for (int i = 0; i < file_count; i++) {
         uint16_t len = strlen(files[i].path);
