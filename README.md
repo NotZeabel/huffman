@@ -2,7 +2,7 @@
 Proyecto 1 de Sistemas Operativos
 
 Link con el zip de libros: https://files.catbox.moe/0o67sy.zip
-
+Link del informe: https://www.overleaf.com/9752767976ygmpfnfnqbjr#2d875e
 ---
 
 # Compresión
@@ -12,13 +12,13 @@ Link con el zip de libros: https://files.catbox.moe/0o67sy.zip
 
 # Descompresión
 - [x] Serial
-- [ ] Con Procesos
+- [x] Con Procesos
 - [ ] Con Hilos
 
 ---
 
 # Reporte
-- [ ] Portada
+- [x] Portada
 
 ## Introducción
 - [ ] Breve descripción del proyecto Gutenberg
@@ -30,7 +30,7 @@ Link con el zip de libros: https://files.catbox.moe/0o67sy.zip
 - [ ] Explicación detallada del funcionamiento de la función fork() y la biblioteca pthread
 - [ ] Explicación de sus estrategias para paralelizar los programas en cada una de las versiones (fork y pthread)
 - [ ] Descripción del proyecto con instrucciones de cómo compilarlo y correrlo en el entorno base del curso
-  - [ ] Enlace al código fuente (este repo xd)
+  - [x] Enlace al código fuente (este repo xd)
   - [ ] Incorpora todas las dependencias
   - [ ] Script de instalación
   - [ ] El proyecto compila y ejecuta
