@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/time.h>
 #include <sys/stat.h>
 
 // ===== DEFINITIONS =====
@@ -146,8 +147,18 @@ int main(int argc, char **argv) {
         printf("usage: decompressor <file>\n");
         return 1;
     }
+    struct timeval starting_time, ending_time;
 
+    gettimeofday(&starting_time, 0);
     decompress_files(argv[1]);
+    gettimeofday(&ending_time, 0);
+
+    int seconds = ending_time.tv_sec - starting_time.tv_sec;
+    int microseconds = ending_time.tv_usec - starting_time.tv_usec;
+    double final_time = seconds + microseconds*1e-6;
+
+    printf("Finalizó correctamente en %f segundos\n", final_time);
+
 
     return 0;
 }
