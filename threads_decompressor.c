@@ -4,11 +4,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <pthread.h>
 #include <sys/time.h>
 #include <sys/stat.h>
 
 // ===== DEFINITIONS =====
-
+#define BUFFER_SIZE 128 * 1024
 #define SYMBOLS 256
 #define MAX_FILES 1024
 
@@ -16,6 +17,18 @@ typedef struct {
     char path[512];
     uint64_t size;
 } FileEntry;
+
+typedef struct {
+    char* buffer;
+    char* path;
+    uint64_t size;
+} thread_args;
+
+
+//Mutex variables
+pthread_mutex_t first_lock;
+pthread_t* tArray;
+
 
 // ===== MORE HUFFMAN SUTFF =====
 
@@ -77,7 +90,7 @@ void read_header(FILE *f, FileEntry files[], int *file_count,
     fread(freq, sizeof(uint64_t), SYMBOLS, f);
 }
 
-void decode_files(BitReader *br, Node *root, FILE *out, uint64_t bytes) {
+void decode_files(BitReader *br, Node *root, uint64_t bytes, thread_args* new_thread) {
     Node *current = root;
     uint64_t written = 0;
 
@@ -91,7 +104,7 @@ void decode_files(BitReader *br, Node *root, FILE *out, uint64_t bytes) {
         }
 
         if (!current->left && !current->right) {
-            fputc(current->symbol, out);
+	    new_thread->buffer[written] = current->symbol;
             current = root;
             written++;
         }
@@ -111,17 +124,51 @@ void create_directory(const char *path) {
     mkdir(tmp, 0755);
 }
 
+void* write_file(void* arg){
+    thread_args* data_arg = arg;
+
+    create_directory(data_arg->path);
+    FILE *out = fopen(data_arg->path, "wb");
+
+    fwrite(data_arg->buffer, 1, data_arg->size, out);
+
+    fclose(out);
+
+    free(data_arg->path);
+    free(data_arg->buffer);
+    free(arg);
+}
+
+
+
 void extract_files(BitReader *br, Node *root, FileEntry files[],
                    int file_count) {
     for (int i = 0; i < file_count; i++) {
-        create_directory(files[i].path);
-        FILE *out = fopen(files[i].path, "wb");
 
-        decode_files(br, root, out, files[i].size);
+        thread_args* new_arg = malloc(sizeof(thread_args));
+	new_arg->buffer = malloc(sizeof(char) * files[i].size);
+        new_arg->path = strdup(files[i].path);
+	new_arg->size = files[i].size;
 
-        fclose(out);
+	decode_files(br, root, files[i].size, new_arg);
+
+        int status = pthread_create(&tArray[i], NULL, write_file, (void*) new_arg);
+        if (status != 0){
+            free(new_arg->path);
+            free(new_arg->buffer);
+	    free(new_arg);
+        }
+    }
+    for(int i = 0; i < file_count; i++){
+        pthread_join(tArray[i], NULL);
     }
 }
+
+void init_global(int file_count){
+    pthread_mutex_init(&first_lock, NULL);
+    tArray = malloc(sizeof(pthread_t) * file_count);
+}
+
 
 void decompress_files(const char *file) {
     FILE *f = fopen(file, "rb");
@@ -131,6 +178,9 @@ void decompress_files(const char *file) {
     uint64_t freq[SYMBOLS];
 
     read_header(f, files, &file_count, freq);
+
+    //Initialize global variables for threads
+    init_global(file_count);
 
     Node *root = build_huffman(freq);
 
@@ -158,6 +208,8 @@ int main(int argc, char **argv) {
     double final_time = seconds + microseconds*1e-6;
 
     printf("Finalizó correctamente en %f segundos\n", final_time);
+
+    free(tArray);
 
 
     return 0;
