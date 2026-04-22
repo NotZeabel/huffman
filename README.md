@@ -21,17 +21,17 @@ Link del informe: https://www.overleaf.com/9752767976ygmpfnfnqbjr#2d875e
 - [x] Portada
 
 ## Introducción
-- [ ] Breve descripción del proyecto Gutenberg
-- [ ] Breve historia y descripción del algoritmo de Huffman
-- [ ] Explicación de qué es un algoritmo de compresión con pérdida y sin pérdida
+- [x] Breve descripción del proyecto Gutenberg
+- [x] Breve historia y descripción del algoritmo de Huffman
+- [x] Explicación de qué es un algoritmo de compresión con pérdida y sin pérdida
 - [ ] Explicación de la diferencia entre paralelismo y concurrencia
 
 ## Desarrollo
 - [ ] Explicación detallada del funcionamiento de la función fork() y la biblioteca pthread
 - [ ] Explicación de sus estrategias para paralelizar los programas en cada una de las versiones (fork y pthread)
-- [ ] Descripción del proyecto con instrucciones de cómo compilarlo y correrlo en el entorno base del curso
+- [x] Descripción del proyecto con instrucciones de cómo compilarlo y correrlo en el entorno base del curso
   - [x] Enlace al código fuente (este repo xd)
-  - [ ] Incorpora todas las dependencias
+  - [x] Incorpora todas las dependencias
   - [ ] Script de instalación
   - [ ] El proyecto compila y ejecuta
 
