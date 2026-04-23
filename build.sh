@@ -7,7 +7,7 @@ fi
 
 echo "Installing dependencies"
 
-apt install gcc
+apt update && apt install gcc
 
 echo "Compiling files"
 gcc -o s_compressor serial_compressor.c
