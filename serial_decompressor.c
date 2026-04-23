@@ -1,11 +1,12 @@
 #include "utils/bitreader.c"
 #include "utils/heap.c"
+#include <libgen.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/time.h>
 #include <sys/stat.h>
+#include <sys/time.h>
 
 // ===== DEFINITIONS =====
 
@@ -132,13 +133,26 @@ void decompress_files(const char *file) {
 
     read_header(f, files, &file_count, freq);
 
+    mkdir("Recuperados", 0755);
+    mkdir("Recuperados/serial", 0755);
+
+    for (int i = 0; i < file_count; i++) {
+        char *solo_nombre = basename(files[i].path);
+
+        char nueva_ruta[1024];
+        snprintf(nueva_ruta, sizeof(nueva_ruta), "Recuperados/serial/%s",
+                 solo_nombre);
+
+        strncpy(files[i].path, nueva_ruta, sizeof(files[i].path) - 1);
+        files[i].path[sizeof(files[i].path) - 1] = '\0';
+    }
+
     Node *root = build_huffman(freq);
 
     BitReader br;
     br_init(&br, f);
 
     extract_files(&br, root, files, file_count);
-
     fclose(f);
 }
 
@@ -155,10 +169,10 @@ int main(int argc, char **argv) {
 
     int seconds = ending_time.tv_sec - starting_time.tv_sec;
     int microseconds = ending_time.tv_usec - starting_time.tv_usec;
-    double final_time = seconds + microseconds*1e-6;
+    double final_time = seconds + microseconds * 1e-6;
 
+    printf("Descompresión finalizada. Archivos en: ./Recuperados/serial/\n");
     printf("Finalizó correctamente en %f segundos\n", final_time);
-
 
     return 0;
 }

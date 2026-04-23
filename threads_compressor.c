@@ -1,9 +1,9 @@
 #include "utils/bitwriter.c"
 #include "utils/heap.c"
 #include <dirent.h>
+#include <pthread.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <pthread.h>
 #include <sys/time.h>
 
 // ===== DEFINITIONS =====
@@ -17,7 +17,7 @@ typedef struct {
 } FileEntry;
 
 typedef struct {
-    char* fullpath;
+    char *fullpath;
     int file_number;
 } thread_args;
 
@@ -26,10 +26,9 @@ int file_count = 0;
 uint64_t freq[SYMBOLS] = {0};
 char *codes[SYMBOLS];
 
-//Mutex variables
+// Mutex variables
 pthread_mutex_t first_lock;
-pthread_t* tArray;
-
+pthread_t *tArray;
 
 // ===== HUFFMAN MIEDO =====
 
@@ -106,21 +105,21 @@ void encode_files(BitWriter *bw) {
     }
 }
 
-void merge_freq(uint64_t input_freq[SYMBOLS]){
+void merge_freq(uint64_t input_freq[SYMBOLS]) {
     pthread_mutex_lock(&first_lock);
-    for(int i = 0; i < SYMBOLS; i++)
-	freq[i] += input_freq[i];
+    for (int i = 0; i < SYMBOLS; i++)
+        freq[i] += input_freq[i];
     pthread_mutex_unlock(&first_lock);
 }
 
-void* read_file(void* arg){
-    thread_args* data_arg = arg;
-    char* fullpath = data_arg->fullpath;
+void *read_file(void *arg) {
+    thread_args *data_arg = arg;
+    char *fullpath = data_arg->fullpath;
     int thread_id = data_arg->file_number;
 
     FILE *f = fopen(fullpath, "rb");
     if (!f)
-        pthread_exit((void*) 3);
+        pthread_exit((void *)3);
 
     strcpy(files[thread_id].path, fullpath);
 
@@ -130,7 +129,7 @@ void* read_file(void* arg){
 
     while ((c = fgetc(f)) != EOF) {
         local_freq[(unsigned char)c]++;
-	size++;
+        size++;
     }
 
     files[thread_id].size = size;
@@ -143,33 +142,33 @@ void* read_file(void* arg){
     free(arg);
 }
 
-
 void scan_dir(const char *dir_path) {
     DIR *dir = opendir(dir_path);
     struct dirent *entry;
 
     while ((entry = readdir(dir)) != NULL) {
         if (entry->d_type == DT_REG) {
-	    char fullpath[256];
+            char fullpath[256];
             snprintf(fullpath, sizeof(fullpath), "%s%s", dir_path,
                      entry->d_name);
 
-	    int thread_id = file_count++;
+            int thread_id = file_count++;
 
-	    thread_args* new_arg = malloc(sizeof(thread_args));
-	    new_arg->fullpath = strdup(fullpath);
-	    new_arg->file_number = thread_id;
+            thread_args *new_arg = malloc(sizeof(thread_args));
+            new_arg->fullpath = strdup(fullpath);
+            new_arg->file_number = thread_id;
 
-	    int status = pthread_create(&tArray[thread_id], NULL, read_file, (void*) new_arg);
-	    if (status != 0){
-		free(new_arg->fullpath);
-		free(new_arg);
-		file_count--;
-	    }
-	}
+            int status = pthread_create(&tArray[thread_id], NULL, read_file,
+                                        (void *)new_arg);
+            if (status != 0) {
+                free(new_arg->fullpath);
+                free(new_arg);
+                file_count--;
+            }
+        }
     }
 
-    for(int i = 0; i < file_count; i++){
+    for (int i = 0; i < file_count; i++) {
         pthread_join(tArray[i], NULL);
     }
 
@@ -198,7 +197,7 @@ void compress_directory(const char *input_dir, const char *output) {
     fclose(out);
 }
 
-void init_global(){
+void init_global() {
     pthread_mutex_init(&first_lock, NULL);
     tArray = malloc(sizeof(pthread_t) * MAX_FILES);
 }
@@ -212,14 +211,13 @@ int main(int argc, char **argv) {
     struct timeval starting_time, ending_time;
     init_global();
 
-
     gettimeofday(&starting_time, 0);
     compress_directory(argv[1], argv[2]);
     gettimeofday(&ending_time, 0);
 
     int seconds = ending_time.tv_sec - starting_time.tv_sec;
     int microseconds = ending_time.tv_usec - starting_time.tv_usec;
-    double final_time = seconds + microseconds*1e-6;
+    double final_time = seconds + microseconds * 1e-6;
 
     printf("Finalizó correctamente en %f segundos\n", final_time);
 
@@ -227,4 +225,3 @@ int main(int argc, char **argv) {
 
     return 0;
 }
-

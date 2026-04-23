@@ -1,16 +1,16 @@
 #include "utils/bitreader.c"
 #include "utils/heap.c"
+#include <libgen.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/time.h>
 #include <sys/stat.h>
+#include <sys/time.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#include <libgen.h>
 
-//DEFINITIONS
+// DEFINITIONS
 #define SYMBOLS 256
 #define MAX_FILES 1024
 
@@ -19,10 +19,11 @@ typedef struct {
     uint64_t size;
 } FileEntry;
 
-//LÓGICA DE HUFFMAN
+// LÓGICA DE HUFFMAN
 Node *build_huffman(uint64_t freq[SYMBOLS]) {
     for (int i = 0; i < SYMBOLS; i++) {
-        if (freq[i] == 0) continue;
+        if (freq[i] == 0)
+            continue;
         Node *n = malloc(sizeof(Node));
         n->symbol = i;
         n->freq = freq[i];
@@ -42,7 +43,8 @@ Node *build_huffman(uint64_t freq[SYMBOLS]) {
     return heap_pop();
 }
 
-void read_header(FILE *f, FileEntry files[], int *file_count, uint64_t freq[SYMBOLS]) {
+void read_header(FILE *f, FileEntry files[], int *file_count,
+                 uint64_t freq[SYMBOLS]) {
     char magic[4];
     fread(magic, 1, 4, f);
     if (strncmp(magic, "HUF1", 4) != 0) {
@@ -65,8 +67,10 @@ void decode_files(BitReader *br, Node *root, FILE *out, uint64_t bytes) {
     uint64_t written = 0;
     while (written < bytes) {
         int bit = br_read_bit(br);
-        if (bit == 0) current = current->left;
-        else current = current->right;
+        if (bit == 0)
+            current = current->left;
+        else
+            current = current->right;
 
         if (!current->left && !current->right) {
             fputc(current->symbol, out);
@@ -80,36 +84,42 @@ void create_directory(const char *path) {
     char tmp[512];
     strcpy(tmp, path);
     char *p = strrchr(tmp, '/');
-    if (!p) return;
+    if (!p)
+        return;
     *p = '\0';
     mkdir(tmp, 0755);
 }
 
-//VERSIÓN FORK
-void extract_files_fork(const char *bin_path, Node *root, FileEntry files[], int file_count, int n_procs) {
-    // Para simplificar la concurrencia en lectura de bits sin pre-calcular offsets,
-    // los hijos procesarán bloques de archivos. 
+// VERSIÓN FORK
+void extract_files_fork(const char *bin_path, Node *root, FileEntry files[],
+                        int file_count, int n_procs) {
+    // Para simplificar la concurrencia en lectura de bits sin pre-calcular
+    // offsets, los hijos procesarán bloques de archivos.
     int files_per_proc = (file_count + n_procs - 1) / n_procs;
 
     for (int p = 0; p < n_procs; p++) {
         pid_t pid = fork();
         if (pid == 0) { // Proceso Hijo
-            // Cada hijo abre su propio descriptor de archivo para no compartir el puntero de lectura
+            // Cada hijo abre su propio descriptor de archivo para no compartir
+            // el puntero de lectura
             FILE *f_hijo = fopen(bin_path, "rb");
             FileEntry dummy_files[MAX_FILES];
             uint64_t dummy_freq[SYMBOLS];
             int total_f;
-            
+
             // Reposicionar el BitReader al inicio de los datos
             read_header(f_hijo, dummy_files, &total_f, dummy_freq);
             BitReader br;
             br_init(&br, f_hijo);
 
             int start = p * files_per_proc;
-            int end = (start + files_per_proc > file_count) ? file_count : start + files_per_proc;
+            int end = (start + files_per_proc > file_count)
+                          ? file_count
+                          : start + files_per_proc;
 
-            // IMPORTANTE: El hijo debe saltar los bits de los archivos que no le tocan
-            // En Huffman, esto requiere decodificar "en el aire" sin escribir
+            // IMPORTANTE: El hijo debe saltar los bits de los archivos que no
+            // le tocan En Huffman, esto requiere decodificar "en el aire" sin
+            // escribir
             for (int i = 0; i < file_count; i++) {
                 if (i >= start && i < end) {
                     create_directory(files[i].path);
@@ -117,7 +127,8 @@ void extract_files_fork(const char *bin_path, Node *root, FileEntry files[], int
                     decode_files(&br, root, out, files[i].size);
                     fclose(out);
                 } else if (i < start) {
-                    // "Decodificación fantasma" para mover el BitReader a la posición correcta
+                    // "Decodificación fantasma" para mover el BitReader a la
+                    // posición correcta
                     uint64_t skipped = 0;
                     Node *curr = root;
                     while (skipped < files[i].size) {
@@ -137,7 +148,8 @@ void extract_files_fork(const char *bin_path, Node *root, FileEntry files[], int
         }
     }
 
-    for (int i = 0; i < n_procs; i++) wait(NULL);
+    for (int i = 0; i < n_procs; i++)
+        wait(NULL);
 }
 
 int main(int argc, char **argv) {
@@ -163,21 +175,22 @@ int main(int argc, char **argv) {
     fclose(f);
 
     // --- LÓGICA DE RUTAS RELATIVAS ---
-    
+
     // 1. Crear la estructura de carpetas: ./Recuperados/libros/
     // Primero la base, luego la subcarpeta
     mkdir("Recuperados", 0755);
-    mkdir("Recuperados/libros", 0755);
+    mkdir("Recuperados/procesos", 0755);
 
     for (int i = 0; i < file_count; i++) {
         // Extraemos solo el nombre del archivo (ej: quijote.txt)
         // Ignoramos cualquier ruta que traiga el .huf (sea absoluta o relativa)
         char *solo_nombre = basename(files[i].path);
-        
+
         char nueva_ruta[1024];
         // Forzamos la ruta a ./Recuperados/libros/nombre_archivo.txt
-        snprintf(nueva_ruta, sizeof(nueva_ruta), "Recuperados/libros/%s", solo_nombre);
-        
+        snprintf(nueva_ruta, sizeof(nueva_ruta), "Recuperados/procesos/%s",
+                 solo_nombre);
+
         strncpy(files[i].path, nueva_ruta, sizeof(files[i].path) - 1);
         files[i].path[sizeof(files[i].path) - 1] = '\0';
     }
@@ -186,9 +199,10 @@ int main(int argc, char **argv) {
     extract_files_fork(argv[1], root, files, file_count, n_procs);
 
     gettimeofday(&end_t, 0);
-    double total_time = (end_t.tv_sec - start_t.tv_sec) + (end_t.tv_usec - start_t.tv_usec) * 1e-6;
+    double total_time = (end_t.tv_sec - start_t.tv_sec) +
+                        (end_t.tv_usec - start_t.tv_usec) * 1e-6;
 
-    printf("Descompresión finalizada. Archivos en: ./Recuperados/libros/\n");
+    printf("Descompresión finalizada. Archivos en: ./Recuperados/procesos/\n");
     printf("Tiempo total: %f segundos\n", total_time);
 
     return 0;

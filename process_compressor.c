@@ -1,16 +1,16 @@
+#include "utils/bitwriter.c"
+#include "utils/heap.c"
+#include <dirent.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <dirent.h>
-#include <stdint.h>
-#include <unistd.h>
-#include <sys/wait.h>
 #include <sys/mman.h>
 #include <sys/time.h>
-#include "utils/bitwriter.c"
-#include "utils/heap.c"
+#include <sys/wait.h>
+#include <unistd.h>
 
-//DEFINICIONES
+// DEFINICIONES
 #define SYMBOLS 256
 #define MAX_FILES 1024
 
@@ -25,11 +25,12 @@ int file_count = 0;
 uint64_t freq[SYMBOLS] = {0};
 char *codes[SYMBOLS];
 
-//LÓGICA DE HUFFMAN
+// LÓGICA DE HUFFMAN
 
 Node *build_huffman() {
     for (int i = 0; i < SYMBOLS; i++) {
-        if (freq[i] == 0) continue;
+        if (freq[i] == 0)
+            continue;
         Node *n = malloc(sizeof(Node));
         n->symbol = i;
         n->freq = freq[i];
@@ -62,20 +63,23 @@ void build_codes(Node *node, char *prefix, int length) {
     build_codes(node->right, prefix, length + 1);
 }
 
-//MANEJO DE ARCHIVOS Y HEADER
+// MANEJO DE ARCHIVOS Y HEADER
 
 void scan_dir(const char *dir_path) {
     DIR *dir = opendir(dir_path);
-    if (!dir) return;
+    if (!dir)
+        return;
     struct dirent *entry;
 
     while ((entry = readdir(dir)) != NULL && file_count < MAX_FILES) {
         if (entry->d_type == DT_REG) {
             char fullpath[256];
-            snprintf(fullpath, sizeof(fullpath), "%s%s", dir_path, entry->d_name);
-            
+            snprintf(fullpath, sizeof(fullpath), "%s%s", dir_path,
+                     entry->d_name);
+
             FILE *f = fopen(fullpath, "rb");
-            if (!f) continue;
+            if (!f)
+                continue;
 
             fseek(f, 0, SEEK_END);
             files[file_count].size = ftell(f);
@@ -99,15 +103,15 @@ void write_header(FILE *out) {
     fwrite(freq, sizeof(uint64_t), SYMBOLS, out);
 }
 
-//VERSIÓN FORK (PROCESOS)
+// VERSIÓN FORK (PROCESOS)
 
 void compress_fork(const char *input_dir, const char *output, int num_procs) {
     scan_dir(input_dir);
 
     // 1. Crear memoria compartida para las frecuencias globales
-    uint64_t *shared_freq = mmap(NULL, sizeof(uint64_t) * SYMBOLS, 
-                                 PROT_READ | PROT_WRITE, 
-                                 MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+    uint64_t *shared_freq =
+        mmap(NULL, sizeof(uint64_t) * SYMBOLS, PROT_READ | PROT_WRITE,
+             MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     memset(shared_freq, 0, sizeof(uint64_t) * SYMBOLS);
 
     int files_per_proc = (file_count + num_procs - 1) / num_procs;
@@ -116,11 +120,14 @@ void compress_fork(const char *input_dir, const char *output, int num_procs) {
         pid_t pid = fork();
         if (pid == 0) { // Proceso Hijo
             int start = i * files_per_proc;
-            int end = (start + files_per_proc > file_count) ? file_count : start + files_per_proc;
+            int end = (start + files_per_proc > file_count)
+                          ? file_count
+                          : start + files_per_proc;
 
             for (int j = start; j < end; j++) {
                 FILE *f = fopen(files[j].path, "rb");
-                if (!f) continue;
+                if (!f)
+                    continue;
                 int c;
                 while ((c = fgetc(f)) != EOF) {
                     // Incremento atómico en memoria compartida
@@ -133,7 +140,8 @@ void compress_fork(const char *input_dir, const char *output, int num_procs) {
     }
 
     // El padre espera a todos los hijos
-    for (int i = 0; i < num_procs; i++) wait(NULL);
+    for (int i = 0; i < num_procs; i++)
+        wait(NULL);
 
     // Copiar resultados de memoria compartida a la variable global freq
     memcpy(freq, shared_freq, sizeof(uint64_t) * SYMBOLS);
