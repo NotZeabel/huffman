@@ -10,11 +10,11 @@ echo "Installing dependencies"
 apt update && apt install gcc
 
 echo "Compiling files"
-gcc -o s_compressor serial_compressor.c
-gcc -o t_compressor threads_compressor.c
-gcc -o p_compressor process_compressor.c
-gcc -o s_decompressor serial_decompressor.c
-gcc -o t_decompressor threads_decompressor.c
-gcc -o p_decompressor process_decompressor.c
+gcc -o compressor_serial serial_compressor.c
+gcc -o compressor_threads threads_compressor.c
+gcc -o compressor_process process_compressor.c
+gcc -o decompressor_serial serial_decompressor.c
+gcc -o decompressor_threads threads_decompressor.c
+gcc -o decompressor_process process_decompressor.c
 
 echo "Done. Exiting"
