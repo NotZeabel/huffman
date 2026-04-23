@@ -28,12 +28,12 @@ Link del informe: https://www.overleaf.com/9752767976ygmpfnfnqbjr#2d875e
 
 ## Desarrollo
 - [ ] Explicación detallada del funcionamiento de la función fork() y la biblioteca pthread
-- [ ] Explicación de sus estrategias para paralelizar los programas en cada una de las versiones (fork y pthread)
+- [x] Explicación de sus estrategias para paralelizar los programas en cada una de las versiones (fork y pthread)
 - [x] Descripción del proyecto con instrucciones de cómo compilarlo y correrlo en el entorno base del curso
   - [x] Enlace al código fuente (este repo xd)
   - [x] Incorpora todas las dependencias
-  - [ ] Script de instalación
-  - [ ] El proyecto compila y ejecuta
+  - [x] Script de instalación
+  - [x] El proyecto compila y ejecuta
 
 ## Discusión
 - [ ] Calcule la aceleración obtenida entre las distintas versiones de su proyecto
