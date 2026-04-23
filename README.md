@@ -2,18 +2,19 @@
 Proyecto 1 de Sistemas Operativos
 
 Link con el zip de libros: https://files.catbox.moe/0o67sy.zip
+
 Link del informe: https://www.overleaf.com/9752767976ygmpfnfnqbjr#2d875e
 ---
 
 # Compresión
 - [x] Serial
 - [x] Con Procesos
-- [ ] Con Hilos
+- [x] Con Hilos
 
 # Descompresión
 - [x] Serial
 - [x] Con Procesos
-- [ ] Con Hilos
+- [x] Con Hilos
 
 ---
 
@@ -24,7 +25,7 @@ Link del informe: https://www.overleaf.com/9752767976ygmpfnfnqbjr#2d875e
 - [x] Breve descripción del proyecto Gutenberg
 - [x] Breve historia y descripción del algoritmo de Huffman
 - [x] Explicación de qué es un algoritmo de compresión con pérdida y sin pérdida
-- [ ] Explicación de la diferencia entre paralelismo y concurrencia
+- [x] Explicación de la diferencia entre paralelismo y concurrencia
 
 ## Desarrollo
 - [ ] Explicación detallada del funcionamiento de la función fork() y la biblioteca pthread
