@@ -3,6 +3,8 @@
 #include <dirent.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <sys/time.h>
+
 
 // ===== DEFINITIONS =====
 
@@ -156,7 +158,18 @@ int main(int argc, char **argv) {
         return 1;
     }
 
+    struct timeval starting_time, ending_time;
+
+    gettimeofday(&starting_time, 0);
     compress_directory(argv[1], argv[2]);
+    gettimeofday(&ending_time, 0);
+
+    int seconds = ending_time.tv_sec - starting_time.tv_sec;
+    int microseconds = ending_time.tv_usec - starting_time.tv_usec;
+    double final_time = seconds + microseconds * 1e-6;
+
+    printf("Finalizó correctamente en %f segundos\n", final_time);
+
 
     return 0;
 }
