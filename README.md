@@ -4,6 +4,7 @@ Proyecto 1 de Sistemas Operativos
 Link con el zip de libros: https://files.catbox.moe/0o67sy.zip
 
 Link del informe: https://www.overleaf.com/9752767976ygmpfnfnqbjr#2d875e
+
 ---
 
 # Compresión
@@ -28,7 +29,7 @@ Link del informe: https://www.overleaf.com/9752767976ygmpfnfnqbjr#2d875e
 - [x] Explicación de la diferencia entre paralelismo y concurrencia
 
 ## Desarrollo
-- [ ] Explicación detallada del funcionamiento de la función fork() y la biblioteca pthread
+- [x] Explicación detallada del funcionamiento de la función fork() y la biblioteca pthread
 - [x] Explicación de sus estrategias para paralelizar los programas en cada una de las versiones (fork y pthread)
 - [x] Descripción del proyecto con instrucciones de cómo compilarlo y correrlo en el entorno base del curso
   - [x] Enlace al código fuente (este repo xd)
